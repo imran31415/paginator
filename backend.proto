@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+option go_package = "backend/proto;proto";
+package backend;
+
+// Message representing a single Resource record.
+message Resource {
+  int32 id = 1;
+  string uuid = 2;
+  string name = 3;
+  string created_at = 4;
+  string updated_at = 5;
+}
+
+// Message representing a single AnimalRanking record.
+message AnimalRanking {
+  int32 id = 1;
+  int32 rank = 2;
+  string name = 3;
+  string created_at = 4;
+  string updated_at = 5;
+}
+
+// Enum for specifying the sort order (ASC or DESC).
+enum SortOrder {
+  ASC = 0; // Ascending order
+  DESC = 1; // Descending order
+}
+
+// Enum for specifying the columns to sort in the resources table.
+enum ResourceSortColumn {
+  RESOURCE_CREATED_AT = 0; // Created at column for Resource
+  RESOURCE_NAME = 1; // Name column for Resource
+}
+
+// Enum for specifying the columns to sort in the animal_rankings table.
+enum AnimalRankingSortColumn {
+  ANIMAL_RANK = 0; // Rank column for AnimalRanking
+  ANIMAL_NAME = 1; // Name column for AnimalRanking
+}
+
+// Request message for listing resources with pagination.
+message ListResourcesRequest {
+  string key = 1; // Pagination key (e.g., created_at or name value).
+  int32 limit = 2; // Number of records to retrieve.
+  SortOrder order = 3; // Enum specifying ASC or DESC.
+  ResourceSortColumn sort_column = 4; // Enum specifying the column to sort by.
+  map<string, string> filters = 5; // Optional filters as key-value pairs.
+}
+
+// Response message containing a list of resources.
+message ListResourcesResponse {
+  repeated Resource resources = 1; // List of resources.
+  string next_key = 2; // Next key to use for pagination.
+}
+
+// Request message for listing animal rankings with pagination.
+message ListAnimalRankingsRequest {
+  int32 key = 1; // Pagination key (e.g., rank value).
+  int32 limit = 2; // Number of records to retrieve.
+  SortOrder order = 3; // Enum specifying ASC or DESC.
+  AnimalRankingSortColumn sort_column = 4; // Enum specifying the column to sort by.
+  map<string, string> filters = 5; // Optional filters as key-value pairs.
+}
+
+// Response message containing a list of animal rankings.
+message ListAnimalRankingsResponse {
+  repeated AnimalRanking animal_rankings = 1; // List of animal rankings.
+  int32 next_key = 2; // Next key to use for pagination.
+}
+
+// Service for managing resources.
+service ResourceService {
+  // ListResources RPC for listing resources with pagination.
+  rpc ListResources (ListResourcesRequest) returns (ListResourcesResponse);
+}
+
+// Service for managing animal rankings.
+service AnimalRankingService {
+  // ListAnimalRankings RPC for listing animal rankings with pagination.
+  rpc ListAnimalRankings (ListAnimalRankingsRequest) returns (ListAnimalRankingsResponse);
+}

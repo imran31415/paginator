@@ -1,0 +1,57 @@
+services:
+  grpc_server:
+    build:
+      context: .
+      dockerfile: Dockerfile.grpc
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=:50051"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "50051:50051"
+      - "9092:9092"   # Expose the Prometheus metrics port
+
+    environment:
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=example
+      - MYSQL_HOST=db
+      - MYSQL_PORT=3306
+      - MYSQL_DBNAME=platform
+      - MYSQL_DATABASE=platform  
+    depends_on:
+      db:
+        condition: service_healthy 
+    networks:
+      - platform
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=example
+      - MYSQL_PASSWORD=example
+      - MYSQL_PORT=3306
+      - MYSQL_DBNAME=platform
+      - MYSQL_DATABASE=platform  
+    volumes:
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - platform
+  grpcui:
+    image: fullstorydev/grpcui:latest
+    ports:
+      - "8081:8080"  # Expose grpcui on port 8081
+    depends_on:
+      grpc_server:
+        condition: service_healthy
+    networks:
+      - platform
+    command: ["-plaintext", "grpc_server:50051"]  # Disable TLS and provide the gRPC server host and port
+networks:
+  platform:
