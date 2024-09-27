@@ -71,9 +71,9 @@ This should generate the same exact models/... code as before since we haven't m
 // condition returns the appropriate SQL comparison operator based on the `order` parameter.
 func condition(order string) string {
 	if order == "ASC" {
-		return ">="
+		return ">"
 	}
-	return "<="
+	return "<"
 }
 ```
 
